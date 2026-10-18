@@ -1,0 +1,27 @@
+# Stage 1, 2, 3, and 4 dependencies.
+# Dependencies for later stages (FastAPI, Streamlit, etc.)
+# will be added incrementally as each stage is implemented.
+
+# ── Stage 1 ─────────────────────────────────────────────────────────────────
+python-dotenv>=1.0.0
+
+# ── Stage 2: Google Gemini LLM integration ───────────────────────────────────
+google-genai>=1.0.0
+
+# ── Stage 3: Source discovery and collection ─────────────────────────────────
+tavily-python>=0.3.0
+requests>=2.28.0
+beautifulsoup4>=4.12.0
+
+# ── Stage 4: Document processing + RAG ───────────────────────────────────────
+sentence-transformers>=2.7.0
+chromadb>=0.5.0
+
+# ── Stage 7: Automation & Scheduling ────────────────────────────────────────
+apscheduler>=3.10.0
+tzdata>=2024.1
+
+# ── Stage 8: FastAPI Backend + Streamlit UI ────────────────────────────────
+fastapi>=0.100.0
+uvicorn>=0.20.0
+streamlit>=1.25.0
