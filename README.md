@@ -1,479 +1,366 @@
 # AutoResearch AI
 
-> AutoResearch AI is an automated AI research agent designed to continuously research user-defined topics, build a persistent knowledge base, generate source-grounded reports, and identify new developments over time.
+### AI-Powered Research Automation with Retrieval-Augmented Generation (RAG)
 
----
+AutoResearch AI is a research automation agent that turns a user-defined topic into a structured research report grounded in information collected from the web. It combines automated source discovery, webpage content extraction, semantic retrieval, large language model synthesis, persistent research history, and scheduled execution in one Python application.
 
-## Current Status
+The system also compares new research with previous runs to highlight new findings, changed findings, and newly discovered sources.
 
-```
-Stage 1 — Project Foundation          ✅
-Stage 2 — Google Gemini Integration   ✅
-Stage 3 — Automated Source Discovery  ✅
-Stage 4 — Document Processing + RAG   ✅
-Stage 5 — Research Agent + Reports    ✅
-Stage 6 — Persistent Memory + What's New ✅
-Stage 7 — Scheduling + Automation     ✅
-Stage 8 — FastAPI Backend + Streamlit UI ✅
-```
+## Features
 
----
+- **Automated web research:** Discover relevant web sources using the Tavily Search API.
+- **Webpage collection and cleaning:** Fetch pages and extract useful text for research.
+- **Retrieval-Augmented Generation (RAG):** Split content into overlapping chunks, generate embeddings, store vectors in ChromaDB, and retrieve semantically relevant passages.
+- **AI-generated reports:** Use Google Gemini to produce structured Markdown reports with an executive summary, key findings, analysis, emerging trends, conclusion, and sources.
+- **Source reference management:** Associate citation IDs such as `[S1]` and `[S2]` with source metadata and deduplicate repeated canonical URLs.
+- **Persistent research memory:** Store research runs, findings, and source associations in SQLite.
+- **What's New comparison:** Compare fresh research with previous results to identify new findings, changed findings, new sources, and already-known information.
+- **Scheduled research:** Configure recurring daily or weekly research using APScheduler.
+- **Job tracking:** Track execution status, timestamps, errors, research-run associations, and report paths.
+- **Interactive dashboard:** Use Streamlit to submit research topics, browse history, compare findings, view reports, and manage schedules.
+- **REST API:** Access research and job-management functionality through FastAPI and interactive API documentation.
 
-## Planned Capabilities
+## Technology Stack
 
-> **Note:** The features listed below are planned for future stages and are **not yet implemented**.
-
-| Feature | Description |
+| Component | Technology |
 |---|---|
-| 🔍 Automated source discovery | Searches the web for relevant sources on a given topic |
-| 📄 Document processing | Extracts and cleans text from web pages and documents |
-| 🧠 Embeddings | Converts documents into semantic vector representations |
-| 🗄️ Vector database | Stores and indexes embeddings for efficient retrieval |
-| 📚 Retrieval-Augmented Generation (RAG) | Retrieves relevant context before generating answers |
-| 🤖 LLM research synthesis | Uses a large language model to generate structured reports |
-| 📎 Source citations | Every claim in a report is linked to a source |
-| 🕑 Research history | Stores all past research runs for comparison |
-| 🆕 What's New detection | Identifies developments not present in previous research |
-| ⏰ Scheduled research automation | Runs research automatically on a configurable schedule |
-| 📊 Research dashboard | A web UI to view reports, history, and insights |
+| Language | Python |
+| LLM | Google Gemini API (`google-genai`) |
+| Web search | Tavily Search API |
+| Web content extraction | Requests, BeautifulSoup |
+| Text embeddings | Sentence Transformers |
+| Embedding model | `all-MiniLM-L6-v2` |
+| Vector database | ChromaDB |
+| Research history and job persistence | SQLite |
+| Backend API | FastAPI, Uvicorn |
+| Dashboard | Streamlit |
+| Scheduling | APScheduler |
+| Configuration | python-dotenv |
+| Testing | pytest |
+| Reports | Markdown |
 
----
+## How It Works
+
+1. **Topic input:** The user submits a research topic through the command line or dashboard.
+2. **Source discovery:** Tavily searches the web and returns relevant source metadata.
+3. **Content collection:** The collector fetches webpages and extracts useful text.
+4. **Chunking:** The content is divided into overlapping text segments.
+5. **Embedding and indexing:** Sentence Transformers generates embeddings, which are stored in ChromaDB.
+6. **Semantic retrieval:** Relevant passages are retrieved for the research topic.
+7. **LLM synthesis:** Google Gemini uses the topic and retrieved context to produce a structured research report.
+8. **Report generation:** The report is saved as a Markdown file with source references.
+9. **Research memory:** The run and related findings and sources are stored in SQLite.
+10. **Change detection:** A later run can be compared with previous research to generate a What's New report.
+11. **Automation and access:** APScheduler can trigger research jobs, while FastAPI and Streamlit provide API and dashboard access.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    A[Research Topic] --> B[Tavily Search API]
+    B --> C[Source Collector]
+    C --> D[Content Extraction and Cleaning]
+    D --> E[Document Chunking]
+    E --> F[Sentence Transformers]
+    F --> G[ChromaDB Vector Store]
+    G --> H[Semantic Retrieval]
+    H --> I[Google Gemini]
+    I --> J[Structured Research Report]
+    J --> K[Markdown Output]
+    J --> L[SQLite Research History]
+    L --> M[What's New Comparison]
+    M --> N[What's New Report]
+
+    O[APScheduler] --> P[Research Execution Service]
+    P --> B
+
+    Q[Streamlit Dashboard] <--> R[FastAPI Backend]
+    R --> P
+    R --> L
+```
 
 ## Project Structure
 
 ```text
-autoresearch-ai/
-│
+AutoResearch-AI/
 ├── app/
-│   ├── __init__.py        # Python package marker
-│   ├── main.py            # Application entry point & startup logic
-│   ├── config.py          # Centralized configuration (loaded from .env)
-│   │
-│   └── llm/
-│       ├── __init__.py    # LLM sub-package marker
-│       └── client.py      # Reusable Google Gemini API client
-│
-├── data/
-│   └── .gitkeep           # Placeholder — raw data stored here (gitignored)
-│
-├── reports/
-│   └── .gitkeep           # Placeholder — generated reports stored here (gitignored)
-│
-├── tests/
-│   ├── __init__.py        # Python package marker
-│   ├── test_config.py     # Stage 1 configuration tests
-│   └── test_llm.py        # Stage 2 Gemini client tests (mocked)
-│
-├── .env                   # Local environment variables (NOT committed)
-├── .env.example           # Template for environment variables
-├── .gitignore             # Standard Python gitignore
-├── requirements.txt       # Python dependencies
-├── README.md              # This file
-└── run.py                 # Root-level application launcher
+│   ├── api/
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   └── routes/
+│   ├── llm/
+│   │   └── client.py
+│   ├── memory/
+│   │   ├── comparator.py
+│   │   ├── database.py
+│   │   ├── models.py
+│   │   └── repository.py
+│   ├── rag/
+│   │   ├── chunker.py
+│   │   ├── embeddings.py
+│   │   ├── service.py
+│   │   └── vector_store.py
+│   ├── research/
+│   │   ├── agent.py
+│   │   ├── prompts.py
+│   │   └── report.py
+│   ├── scheduler/
+│   ├── search/
+│   │   ├── collector.py
+│   │   ├── models.py
+│   │   └── tavily_client.py
+│   ├── services/
+│   │   └── research_service.py
+│   ├── ui/
+│   │   └── streamlit_app.py
+│   ├── config.py
+│   └── main.py
+├── data/                 # Local database and vector-store data
+├── reports/              # Generated Markdown reports
+├── tests/                # Automated tests
+├── .env.example
+├── .gitignore
+├── requirements.txt
+├── run.py
+└── README.md
 ```
 
----
-
-## Setup
+## Getting Started
 
 ### Prerequisites
 
-- Python 3.10 or higher
+- Python installed and available on your PATH
 - Git
+- A Google Gemini API key
+- A Tavily Search API key
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/autoresearch-ai.git
-cd autoresearch-ai
+git clone https://github.com/DSUCS0018/AutoResearch-AI.git
+cd AutoResearch-AI
 ```
 
-### 2. Create and activate a virtual environment (Windows)
+### 2. Create and activate a virtual environment
+
+**Windows PowerShell**
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+If PowerShell activation is restricted, you can run commands using ` .\.venv\Scripts\python.exe` directly.
+
+**macOS / Linux**
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
 ### 3. Install dependencies
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
----
+### 4. Configure environment variables
 
-## Environment Variables
+Create a local `.env` file from the example:
 
-Configuration is managed through a `.env` file in the project root.
+**Windows PowerShell**
 
-1. Copy the example file:
+```powershell
+Copy-Item .env.example .env
+```
 
-   ```bash
-   copy .env.example .env
-   ```
-
-2. Edit `.env` with your values:
-
-   | Variable | Required | Description |
-   |---|---|---|
-   | `APP_NAME` | No | Application display name |
-   | `APP_VERSION` | No | Application version |
-   | `ENVIRONMENT` | No | `development` \| `staging` \| `production` |
-   | `LOG_LEVEL` | No | `DEBUG` \| `INFO` \| `WARNING` \| `ERROR` |
-   | `GEMINI_API_KEY` | **Yes (Stage 2+)** | Your Google Gemini API key — get one free at [aistudio.google.com](https://aistudio.google.com/apikey) |
-   | `GEMINI_MODEL` | No | Model name, default: `gemini-2.5-flash-lite` |
-   | `TAVILY_API_KEY` | **Yes (Stage 3+)** | Your Tavily API key — get one at [app.tavily.com](https://app.tavily.com) |
-   | `TAVILY_MAX_RESULTS` | No | Number of search results per query, default: `5` |
-
-The `.env` file is listed in `.gitignore` and will **never** be committed to version control. Always use `.env.example` as the reference template.
-
----
-
-## Run
-
-### Normal startup (no API calls)
+**macOS / Linux**
 
 ```bash
-python run.py
+cp .env.example .env
 ```
 
-Expected output:
+Set your credentials and application settings in `.env`. Do not commit this file or publish API keys.
 
-```
-========================================
-       AutoResearch AI v0.1.0
-========================================
-
-2026-09-30 03:30:00 | INFO     | app.main | AutoResearch AI is starting up...
-2026-09-30 03:30:00 | INFO     | app.main | Version     : 0.1.0
-2026-09-30 03:30:00 | INFO     | app.main | Environment : development
-2026-09-30 03:30:00 | INFO     | app.main | Log Level   : INFO
-Environment : development
-Status      : READY
-
-2026-09-30 03:30:00 | INFO     | app.main | Startup complete. Application status: READY
-```
-
----
-
-## Stage 3 — Automated Source Discovery
-
-Tavily search and webpage collection are now integrated.
-
-- **Search API**: `app/search/tavily_client.py` wraps the Tavily API and returns typed `Source` objects.
-- **Collector**: `app/search/collector.py` fetches URLs, strips boilerplate HTML (nav, footer, scripts), and returns clean `Document` objects.
-- **Models**: `app/search/models.py` defines `Source` and `Document` dataclasses.
-- **Gemini remains the LLM layer** — the search layer never calls Gemini.
-- All Stage 3 tests are fully mocked (no real API calls during `pytest`).
-
-### Configuration
-
-Add to your `.env`:
-
-```env
-TAVILY_API_KEY=tvly-your-key-here
-TAVILY_MAX_RESULTS=5
-```
-
-Get a free Tavily API key at [app.tavily.com](https://app.tavily.com).
-
-### Manual search test
-
-```bash
-python run.py --test-search
-```
-
-Expected output:
-
-```
-========================================
-       AutoResearch AI v0.1.0
-========================================
-
-Testing Tavily search...
-Query: latest developments in artificial intelligence
-
-Found 5 result(s):
-
-  [1] Title of result 1
-       https://example.com/article-1  Score: 0.95
-  ...
-
-Fetching first result: https://example.com/article-1
-
-Title   : Article Title
-URL     : https://example.com/article-1
-Length  : 4,321 characters
-Preview :
-[first 500 chars of extracted text...]
-
-Search pipeline: SUCCESS
-```
-
-> **Note:** `python run.py` and `python run.py --test-llm` never call the search API.
-
-The Google Gemini API client is now integrated.
-
-- API keys are loaded securely through `.env` — never hardcoded.
-- The Gemini client is isolated in `app/llm/client.py`. The rest of the app imports `GeminiClient` without knowing SDK details.
-- Uses the **official `google-genai` SDK** (not the deprecated `google-generativeai`).
-- Default model: `gemini-2.5-flash-lite` — fast, capable, and available on the **free tier**.
-- Tests in `tests/test_llm.py` mock all API calls — no tokens consumed during testing.
-
-### Manual API connection test
-
-Once `GEMINI_API_KEY` is set in your `.env`, run:
-
-```bash
-python run.py --test-llm
-```
-
-Expected output:
-
-```
-========================================
-       AutoResearch AI v0.1.0
-========================================
-
-Testing Gemini connection...
-
-Prompt:
-Explain Retrieval-Augmented Generation in one sentence.
-
-Response:
-[model response here]
-
-Gemini connection: SUCCESS
-```
-
-> **Note:** `python run.py` (without `--test-llm`) **never** calls the API.
-
----
-
-## Running Tests
-
-```bash
-pip install pytest
-pytest tests/ -v
-```
-
-All tests are mocked — no API key required to run the test suite.
-
----
-
-## Stage 5 — Research Agent + Report Generation
-
-The full automated research pipeline is now operational. Given a topic, AutoResearch AI:
-
-1. **Searches** the web via Tavily for relevant sources.
-2. **Collects** full webpage content and cleans the HTML.
-3. **Chunks** documents into overlapping segments.
-4. **Embeds** chunks locally with `all-MiniLM-L6-v2` (no API cost).
-5. **Stores** vectors in a local ChromaDB collection.
-6. **Retrieves** the most semantically relevant chunks for the topic.
-7. **Generates** a structured, grounded report via Google Gemini.
-8. **Saves** the report as a Markdown file under `reports/`.
-
-### Architecture
-
-```
-Topic
-  ↓
-Tavily Search API       → Source URLs
-  ↓
-SourceCollector         → Clean Documents
-  ↓
-DocumentChunker         → Text Chunks (1000 chars, 150 overlap)
-  ↓
-EmbeddingService        → Float Vectors (local, free)
-  ↓
-ChromaDB VectorStore    → Persistent Knowledge Base
-  ↓
-Semantic Retrieval      → Top-K Relevant Chunks
-  ↓
-Gemini Prompt           → Grounded, cited prompt with [S1][S2]…
-  ↓
-Gemini API              → Structured JSON response
-  ↓
-ResearchReport          → Validated, source-trusted report
-  ↓
-reports/<topic>.md      → Markdown file saved to disk
-```
-
-### New modules
-
-| Module | Purpose |
+| Variable | Purpose |
 |---|---|
-| `app/research/agent.py` | `ResearchAgent` — orchestrates the full pipeline |
-| `app/research/prompts.py` | Prompt builder + source identifier registry |
-| `app/research/report.py` | `ResearchReport` + `SourceReference` dataclasses |
+| `GEMINI_API_KEY` | Google Gemini API credential |
+| `GEMINI_MODEL` | Gemini model name |
+| `TAVILY_API_KEY` | Tavily Search API credential |
+| `TAVILY_MAX_RESULTS` | Maximum search results per query |
+| `APP_NAME` | Application display name |
+| `APP_VERSION` | Application version |
+| `ENVIRONMENT` | Runtime environment |
+| `LOG_LEVEL` | Logging verbosity |
+| `EMBEDDING_MODEL` | Sentence Transformers model |
+| `CHROMA_PERSIST_DIRECTORY` | Local ChromaDB persistence path |
+| `CHUNK_SIZE` | Text chunk size |
+| `CHUNK_OVERLAP` | Overlap between chunks |
+| `TOP_K` | Number of relevant chunks retrieved |
+| `SCHEDULER_TIMEZONE` | Time zone used for scheduled jobs |
 
-### Citation system
+The project's `.env.example` and `app/config.py` define the available settings and defaults.
 
-Every retrieved chunk is labelled **[S1]**, **[S2]**, etc. before being sent to Gemini.
-Gemini is instructed to cite these identifiers for every factual claim.
-Source URLs are taken exclusively from Tavily/Document metadata — Gemini **cannot invent URLs**.
+## Usage
 
-### Run the research agent
+Run commands from the project root with the virtual environment active.
+
+### Run a research task
 
 ```bash
 python run.py --research "latest developments in artificial intelligence"
 ```
 
-**Example output:**
+This runs the research pipeline and saves the generated Markdown report under `reports/`.
 
-```
-========================================
-  AutoResearch AI — Research Agent
-========================================
-
-Topic:
-latest developments in artificial intelligence
-
-Searching sources...
-Collected sources: 5
-Retrieved chunks : 5
-
-Generating report with Gemini...
-
-Research completed successfully.
-
-Executive Summary:
-Recent advancements in AI have been remarkable...
-
-Key Findings:
-  • LLMs have demonstrated significant improvements… [S1]
-  • Generative AI tools are being rapidly deployed… [S2]
-
-Sources:
-  [S1] IBM AI Research
-       https://www.ibm.com/…
-  [S2] …
-
-Report saved to:
-reports/latest-developments-in-artificial-intelligence.md
-```
-
-### Saved reports
-
-All reports are saved under `reports/` as Markdown files.
-Filenames are auto-generated from the topic (lowercased, hyphenated).
-The `reports/` directory is **gitignored** — reports are local only.
-
-```
-reports/
-  latest-developments-in-artificial-intelligence.md
-  future-of-quantum-computing.md
-  …
-```
-
-### Report structure
-
-Each saved Markdown report contains:
-
-```markdown
-# Research Report: <topic>
-
-Generated: <timestamp>
-
-## Executive Summary
-## Key Findings
-## Detailed Analysis
-## Emerging Trends
-## Conclusion
-## Sources
-  [S1] Title
-  URL
-```
-
-> **Note:** Gemini generation is not called by `--test-llm`, `--test-search`, or `--test-rag`.
-> Only `--research` triggers the full pipeline.
-
----
-
-## Stage 6 — Persistent Research Memory & "What's New?"
-
-Stage 6 enables AutoResearch AI to remember past research runs in a local SQLite database (`data/research.db`) and compare current research against prior runs to detect new developments.
-
-### Key Features
-- **SQLite Database**: Automatically initializes `data/research.db` storing runs, sources, and findings.
-- **Topic Normalization**: Case-insensitive and whitespace-normalized topic lookups.
-- **Deterministic Comparator**: Compares new findings and canonical source URLs against previous research without using LLM calls.
-- **What's New Reports**: Saves reports to `reports/<topic>-whats-new.md` highlighting New Findings, Changed Findings, New Sources, and Already Known findings.
-
-### Stage 6 Commands
+### View research history
 
 ```bash
-# Test SQLite database repository and comparator (no network/API calls)
-python run.py --test-memory
-
-# View previous research history for a topic
 python run.py --history "latest developments in artificial intelligence"
+```
 
-# Run a fresh research cycle and compare it against the previous run
+Displays stored research history for the specified topic.
+
+### Identify what's new
+
+```bash
 python run.py --whats-new "latest developments in artificial intelligence"
 ```
 
----
+Performs fresh research and compares its findings with previously stored research for the topic.
 
-## Web Application & API (Stage 8)
-
-AutoResearch AI features a FastAPI backend service and a Streamlit interactive web interface.
-
-### 1. Start the FastAPI Backend
+### Start the FastAPI backend
 
 ```bash
 python run.py --api
 ```
 
-- Server runs at: `http://127.0.0.1:8000`
-- Interactive OpenAPI documentation available at: `http://127.0.0.1:8000/docs`
-- Health check endpoint: `GET http://127.0.0.1:8000/health`
+The local backend is available at:
 
-### 2. Start the Streamlit User Interface
+- API base URL: `http://localhost:8000`
+- Swagger UI: `http://localhost:8000/docs`
+- Health check: `http://localhost:8000/health`
 
-In a second terminal window (with virtual environment active):
+### Start the Streamlit dashboard
+
+Open a second terminal, activate the same virtual environment, and run:
 
 ```bash
-streamlit run app/ui/streamlit_app.py
+python -m streamlit run app/ui/streamlit_app.py
 ```
 
-### 3. Usage Steps
+Open the URL shown in the terminal, usually `http://localhost:8501`. Keep the FastAPI backend running when using dashboard functions that call the API.
 
-1. Start FastAPI backend (`python run.py --api`).
-2. Start Streamlit UI (`streamlit run app/ui/streamlit_app.py`).
-3. Open the Streamlit URL (usually `http://localhost:8501`) in your browser.
-4. Navigate via the sidebar:
-   - **Research**: Enter a topic (e.g. "Latest developments in artificial intelligence") and click **Research** to run agent synthesis.
-   - **History**: Enter a topic to view all past research runs saved in SQLite.
-   - **What's New**: Run a comparison between fresh web research and prior baseline findings.
-   - **Schedules**: View, create (daily/weekly), run, enable, disable, and delete automated research schedules.
+### Run the scheduler
 
----
+To start the scheduler process:
 
-## Development Roadmap
+```bash
+python run.py --scheduler
+```
 
-| Stage | Description | Status |
+### Manage schedules from the command line
+
+Add a daily schedule:
+
+```bash
+python run.py --schedule-add "AI research updates" --daily 09:00
+```
+
+Add a weekly schedule (example: Mondays at 09:00):
+
+```bash
+python run.py --schedule-add "AI research updates" --weekly monday 09:00
+```
+
+List configured schedules:
+
+```bash
+python run.py --schedule-list
+```
+
+Run a schedule immediately:
+
+```bash
+python run.py --schedule-run <job_id>
+```
+
+Enable or disable a schedule:
+
+```bash
+python run.py --schedule-enable <job_id>
+python run.py --schedule-disable <job_id>
+```
+
+Remove a schedule:
+
+```bash
+python run.py --schedule-remove <job_id>
+```
+
+Replace `<job_id>` with the ID returned by the application.
+
+### Test individual components
+
+```bash
+python run.py --test-llm
+python run.py --test-search
+python run.py --test-rag
+python run.py --test-memory
+python run.py --test-scheduler
+```
+
+These commands exercise individual components. Integration tests for external services require valid credentials.
+
+## API Endpoints
+
+The FastAPI backend includes endpoints for research and job management.
+
+| Method | Endpoint | Purpose |
 |---|---|---|
-| **Stage 1** | Project Foundation | ✅ Complete |
-| **Stage 2** | LLM / API Integration (Gemini) | ✅ Complete |
-| **Stage 3** | Automated Source Discovery | ✅ Complete |
-| **Stage 4** | Document Processing + RAG | ✅ Complete |
-| **Stage 5** | Research Agent + Report Generation | ✅ Complete |
-| **Stage 6** | Persistent Memory + What's New | ✅ Complete |
-| **Stage 7** | Scheduling + Automation | ✅ Complete |
-| **Stage 8** | FastAPI + Streamlit UI | ✅ Complete |
-| **Stage 9** | Testing + GitHub + Deployment | 🔜 Planned |
+| `POST` | `/api/research` | Submit a research request |
+| `POST` | `/api/jobs` | Create a research job |
+| `GET` | `/api/jobs` | List research jobs |
+| `GET` | `/api/jobs/{job_id}` | Retrieve job details |
+| `GET` | `/api/jobs/{job_id}/status` | Retrieve job status |
+| `GET` | `/api/jobs/{job_id}/reports` | Retrieve report information |
+| `GET` | `/health` | Check backend health |
+| `GET` | `/docs` | Interactive API documentation |
 
----
+The running API documentation at `/docs` lists the available routes and request schemas.
 
-## Contributing
+## Research Reports
 
-This project is under active development. Each stage introduces new capabilities. Contributions and feedback are welcome once the core stages are implemented.
+Research outputs are saved as Markdown files in the `reports/` directory. A typical report includes:
 
----
+- Research topic and generation timestamp
+- Executive summary
+- Key findings
+- Detailed analysis
+- Emerging trends
+- Conclusion
+- Sources and citation references
 
-## License
+What's New reports summarize the comparison between current and previously stored findings.
 
-MIT License — see `LICENSE` for details.
+## Automated Testing
+
+Run the test suite from the project root:
+
+```bash
+python -m pytest -q
+```
+
+The recorded test run completed with **134 passing tests**. Relevant tests mock external API calls so they can validate application behavior without making real requests. Run the tests against your current checkout to reproduce the result.
+
+## Security
+
+- Keep API keys in the local `.env` file.
+- Use placeholder values in `.env.example`; never store working credentials in source control.
+- Keep virtual environments, local databases, vector-store artifacts, logs, and private data out of public commits.
+- If a credential has ever been committed, revoke or rotate it; deleting it from the latest version alone does not invalidate it.
+
+## Summary
+
+AutoResearch AI brings together automated web discovery, RAG-based context retrieval, Gemini-powered synthesis, source-referenced reporting, persistent research history, What's New comparison, and scheduled execution. Its FastAPI backend and Streamlit dashboard make the research workflow accessible through both an API and an interactive interface.
